@@ -1,0 +1,20 @@
+{
+  "name": "WFW Tippelő 2026",
+  "short_name": "WFW Tippelő",
+  "description": "FIFA Világbajnokság 2026 tippelős játék – versenyezz barátaiddal!",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080c18",
+  "theme_color": "#080c18",
+  "orientation": "portrait-primary",
+  "lang": "hu",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["games", "sports"],
+  "shortcuts": [
+    { "name": "Meccsek", "url": "./index.html?view=matches", "description": "Meccsek és tippjeim" },
+    { "name": "Tabella", "url": "./index.html?view=ranking", "description": "Liga tabella" }
+  ]
+}

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WFW Tippelő 2026 ⚽</title>
+  <meta name="description" content="FIFA VB 2026 tippelős játék – versenyezz barátaiddal!" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="WFW Tippelő" />
+  <meta property="og:title" content="WFW Tippelő 2026 ⚽" />
+  <meta property="og:description" content="Tippelj pontos végeredményekre és versenyezz barátaiddal a FIFA VB-n!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="splash" class="splash">
+  <div class="splash-bg"></div>
+  <div class="splash-content">
+    <div class="splash-ball">⚽</div>
+    <h1 class="splash-title">WFW<br><span>Tippelő</span></h1>
+    <p class="splash-sub">FIFA Világbajnokság 2026</p>
+    <div class="splash-loader"><div></div></div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <header class="header">
+    <div class="header-inner">
+      <a href="https://wfw.hu" target="_blank" class="logo">
+        <span class="logo-wfw">WFW</span>
+        <span class="logo-dot">⚽</span>
+        <span class="logo-tag">Tippelő '26</span>
+      </a>
+      <div class="header-right">
+        <button id="btn-install" class="btn-install hidden">📲 Telepítés</button>
+        <div id="user-badge" class="user-badge hidden"></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav" id="main-nav">
+    <button class="nav-btn active" data-view="home">🏠 Főoldal</button>
+    <button class="nav-btn" data-view="matches">⚽ Meccsek</button>
+    <button class="nav-btn" data-view="league">🏆 Liga</button>
+    <button class="nav-btn" data-view="ranking">📊 Tabella</button>
+  </nav>
+
+  <main class="main">
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <div class="hero-flags">🇺🇸🇲🇽🇨🇦</div>
+        <h2 class="hero-title">Melyik<br>csapat nyeri<br>a VB-t?</h2>
+        <p class="hero-sub">Tippelj pontos végeredményekre, versenyezz barátaiddal és kövesd a rangsort valós időben!</p>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-n">48</span><span class="stat-l">csapat</span></div>
+          <div class="stat"><span class="stat-n">104</span><span class="stat-l">meccs</span></div>
+          <div class="stat"><span class="stat-n">39</span><span class="stat-l">nap</span></div>
+        </div>
+        <div class="hero-cta">
+          <button class="btn-primary" id="btn-join-or-create">🚀 Csatlakozás / Liga létrehozása</button>
+        </div>
+        <div class="countdown-wrap">
+          <p class="countdown-label">VB kezdetéig:</p>
+          <div class="countdown" id="countdown">
+            <div class="cd-block"><span id="cd-d">00</span><small>nap</small></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-block"><span id="cd-h">00</span><small>óra</small></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-block"><span id="cd-m">00</span><small>perc</small></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-block"><span id="cd-s">00</span><small>mp</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scoring-card">
+        <h3>🎯 Pontozási rendszer</h3>
+        <div class="scoring-grid">
+          <div class="score-item gold"><span class="score-pts">5</span><span class="score-desc">Pontos végeredmény</span></div>
+          <div class="score-item silver"><span class="score-pts">3</span><span class="score-desc">Győztes + gólkülönbség</span></div>
+          <div class="score-item bronze"><span class="score-pts">1</span><span class="score-desc">Helyes kimenetel (1X2)</span></div>
+          <div class="score-item zero"><span class="score-pts">0</span><span class="score-desc">Rossz tipp</span></div>
+        </div>
+      </div>
+
+      <div class="wfw-cta">
+        <div class="wfw-cta-inner">
+          <div class="wfw-cta-icon">💡</div>
+          <div class="wfw-cta-text">
+            <strong>Tetszik ez az app?</strong>
+            <p>Hasonló egyedi webrendszert szeretnél a vállalkozásodnak?</p>
+          </div>
+          <a href="https://wfw.hu#contact" target="_blank" class="btn-wfw">Ajánlatot kérek →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-matches" class="view hidden">
+      <div class="view-header">
+        <h2>⚽ Meccsek & Tippjeim</h2>
+        <p class="view-sub" id="matches-login-hint"></p>
+      </div>
+      <div class="phase-tabs" id="phase-tabs"></div>
+      <div id="matches-list" class="matches-list"></div>
+    </section>
+
+    <section id="view-league" class="view hidden">
+      <div class="view-header"><h2>🏆 Ligáim</h2></div>
+      <div id="league-content"></div>
+    </section>
+
+    <section id="view-ranking" class="view hidden">
+      <div class="view-header">
+        <h2>📊 Tabella</h2>
+        <div id="league-selector-wrap"></div>
+      </div>
+      <div id="ranking-content"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="https://wfw.hu" target="_blank">Készítette: <strong>wfw.hu</strong> — Egyedi PHP rendszerek & PWA fejlesztés</a>
+  </footer>
+</div>
+
+<!-- MODALS -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-auth" class="modal hidden">
+    <button class="modal-close" data-close="modal-auth">✕</button>
+    <h3>👤 Belépés</h3>
+    <p class="modal-sub">Adj meg egy becenevet a tippeléshez. Nincs szükség regisztrációra!</p>
+    <div class="form-group">
+      <label>Beceneved</label>
+      <input type="text" id="input-username" placeholder="pl. Góllövő Géza" maxlength="20" />
+    </div>
+    <div class="form-group">
+      <label>Avatár emoji</label>
+      <div class="emoji-picker" id="emoji-picker"></div>
+    </div>
+    <button class="btn-primary" id="btn-save-user">✅ Belépés</button>
+  </div>
+
+  <div id="modal-league" class="modal hidden">
+    <button class="modal-close" data-close="modal-league">✕</button>
+    <h3>🏆 Liga</h3>
+    <div class="league-options">
+      <div class="league-option">
+        <h4>Új liga létrehozása</h4>
+        <div class="form-group">
+          <label>Liga neve</label>
+          <input type="text" id="input-league-name" placeholder="pl. Irodai bajnokság 2026" maxlength="30" />
+        </div>
+        <button class="btn-primary" id="btn-create-league">🚀 Létrehozás</button>
+      </div>
+      <div class="league-divider"><span>vagy</span></div>
+      <div class="league-option">
+        <h4>Csatlakozás meglévőhöz</h4>
+        <div class="form-group">
+          <label>Liga kód</label>
+          <input type="text" id="input-league-code" placeholder="pl. ABC123" maxlength="8" style="text-transform:uppercase" />
+        </div>
+        <button class="btn-secondary" id="btn-join-league">🔗 Csatlakozás</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-tip" class="modal hidden">
+    <button class="modal-close" data-close="modal-tip">✕</button>
+    <div id="tip-modal-content"></div>
+  </div>
+
+  <div id="modal-share" class="modal hidden">
+    <button class="modal-close" data-close="modal-share">✕</button>
+    <h3>📤 Liga megosztása</h3>
+    <p>Oszd meg ezt a kódot a barátaiddal:</p>
+    <div class="share-code" id="share-code-display"></div>
+    <div class="share-url-wrap">
+      <input type="text" id="share-url-input" readonly />
+      <button class="btn-copy" id="btn-copy-link">📋 Másolás</button>
+    </div>
+    <div class="share-buttons">
+      <button class="btn-share-fb" id="btn-share-fb">📘 Facebook</button>
+      <button class="btn-share-wa" id="btn-share-wa">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, arrayUnion, query, where }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyAmX5DCXTg7E9wKe4-GF-nCxgdiZb0UmeE",
+  authDomain: "wfw-fifa-2026-vb.firebaseapp.com",
+  projectId: "wfw-fifa-2026-vb",
+  storageBucket: "wfw-fifa-2026-vb.firebasestorage.app",
+  messagingSenderId: "891074790910",
+  appId: "1:891074790910:web:709ad030abbfc902e16caf"
+};
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+  window.db = db;
+  window.fsUtils = { collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, arrayUnion, query, where };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<script src="js/matches.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
