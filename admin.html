@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WFW Tippelő – Admin</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#080c18;--bg2:#0f1628;--bg3:#1a2240;--card:#111827;--border:#1e2d4d;--accent:#22d3ee;--accent2:#f59e0b;--green:#10b981;--red:#ef4444;--text:#f0f4ff;--text2:#8fa3c8;--text3:#4a5c7a;--radius:12px;--font-head:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;padding:0}
+    .hidden{display:none!important}
+
+    /* LOGIN */
+    #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+    .login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:360px;text-align:center}
+    .login-box h1{font-family:var(--font-head);font-size:2rem;color:var(--accent);margin-bottom:.25rem}
+    .login-box p{color:var(--text2);font-size:.85rem;margin-bottom:1.5rem}
+    .login-box input{width:100%;padding:.75rem 1rem;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:1rem;outline:none;margin-bottom:1rem;text-align:center;letter-spacing:.15em}
+    .login-box input:focus{border-color:var(--accent)}
+    .btn-login{width:100%;padding:.75rem;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font-body)}
+    .login-error{color:var(--red);font-size:.82rem;margin-top:.75rem}
+
+    /* ADMIN LAYOUT */
+    #admin-screen{display:none}
+    .admin-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .admin-title{font-family:var(--font-head);font-size:1.6rem;color:var(--accent)}
+    .admin-subtitle{font-size:.75rem;color:var(--text2)}
+    .header-right{display:flex;align-items:center;gap:1rem}
+    .sync-status{font-size:.75rem;padding:.3rem .7rem;border-radius:99px;border:1px solid var(--border);color:var(--text3)}
+    .sync-status.ok{border-color:var(--green);color:var(--green)}
+    .sync-status.error{border-color:var(--red);color:var(--red)}
+    .sync-status.loading{border-color:var(--accent2);color:var(--accent2)}
+    .btn-logout{background:none;border:1px solid var(--border);color:var(--text3);padding:.3rem .75rem;border-radius:6px;cursor:pointer;font-size:.75rem;font-family:var(--font-body)}
+
+    .admin-body{max-width:900px;margin:0 auto;padding:1.5rem}
+
+    /* CONFIG BOX */
+    .config-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+    .config-box h3{font-size:.9rem;margin-bottom:.75rem;color:var(--accent2)}
+    .config-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end}
+    .config-row label{font-size:.75rem;color:var(--text2);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.07em}
+    .config-row input{padding:.5rem .75rem;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:.82rem;outline:none;flex:1;min-width:200px}
+    .config-row input:focus{border-color:var(--accent)}
+    .btn-sm{padding:.5rem 1rem;border-radius:6px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:opacity .2s}
+    .btn-primary{background:var(--accent);color:var(--bg)}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-orange{background:var(--accent2);color:var(--bg)}
+    .btn-sm:hover{opacity:.85}
+
+    /* STATS BAR */
+    .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.5rem}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+    .stat-card .n{font-family:var(--font-head);font-size:2rem;line-height:1}
+    .stat-card .l{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-top:.2rem}
+    .stat-card.green .n{color:var(--green)}
+    .stat-card.blue .n{color:var(--accent)}
+    .stat-card.orange .n{color:var(--accent2)}
+    .stat-card.red .n{color:var(--red)}
+
+    /* PHASE FILTER */
+    .phase-tabs{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.5rem;margin-bottom:1rem}
+    .phase-tabs::-webkit-scrollbar{display:none}
+    .phase-tab{white-space:nowrap;padding:.35rem .8rem;border-radius:99px;font-size:.76rem;font-weight:600;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--font-body)}
+    .phase-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+    /* RESULTS TABLE */
+    .results-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .result-row{display:grid;grid-template-columns:80px 1fr auto 1fr 160px 60px;align-items:center;gap:.5rem;padding:.65rem 1rem;border-bottom:1px solid var(--border);transition:background .15s}
+    .result-row:last-child{border-bottom:none}
+    .result-row:hover{background:rgba(255,255,255,.02)}
+    .result-row.header{background:var(--bg3);font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+    .result-row.has-result{background:rgba(16,185,129,.04)}
+    .result-row.manual{background:rgba(245,158,11,.04)}
+    .match-date{font-size:.72rem;color:var(--text3)}
+    .team-name{font-size:.82rem;font-weight:600;line-height:1.2}
+    .team-home{text-align:right}
+    .team-away{text-align:left}
+    .score-inputs{display:flex;align-items:center;gap:.35rem;justify-content:center}
+    .score-input{width:44px;padding:.4rem .25rem;text-align:center;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--accent);font-family:var(--font-head);font-size:1.2rem;outline:none;transition:border-color .2s}
+    .score-input:focus{border-color:var(--accent)}
+    .score-input.auto-filled{border-color:var(--green)}
+    .score-input.manual-filled{border-color:var(--accent2)}
+    .score-dash{font-family:var(--font-head);font-size:1rem;color:var(--text3)}
+    .btn-save-result{padding:.35rem .65rem;border-radius:6px;background:var(--green);border:none;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap;transition:opacity .2s}
+    .btn-save-result:hover{opacity:.85}
+    .btn-save-result.saved{background:var(--bg3);color:var(--text3);cursor:default}
+    .source-badge{font-size:.65rem;padding:.2rem .45rem;border-radius:99px;font-weight:600}
+    .source-auto{background:rgba(16,185,129,.15);color:var(--green)}
+    .source-manual{background:rgba(245,158,11,.15);color:var(--accent2)}
+    .source-none{background:var(--bg3);color:var(--text3)}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);border-radius:99px;padding:.6rem 1.3rem;font-size:.85rem;z-index:500;opacity:0;transition:all .3s;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    @media(max-width:640px){
+      .result-row{grid-template-columns:60px 1fr auto 1fr 140px 50px;gap:.3rem;padding:.5rem .6rem;font-size:.75rem}
+      .score-input{width:36px;font-size:1rem}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>WFW Admin</h1>
+    <p>⚽ Eredmények kezelése</p>
+    <input type="password" id="admin-password" placeholder="Jelszó" autocomplete="current-password" />
+    <button class="btn-login" id="btn-login">Belépés</button>
+    <div class="login-error hidden" id="login-error">❌ Hibás jelszó</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">WFW Admin ⚽</div>
+      <div class="admin-subtitle">Eredmény szinkronizáció & manuális bevitel</div>
+    </div>
+    <div class="header-right">
+      <div class="sync-status" id="sync-status">⏳ Nincs szinkron</div>
+      <button class="btn-logout" id="btn-logout">Kilépés</button>
+    </div>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- CONFIG -->
+    <div class="config-box">
+      <h3>⚙️ Auto-szinkron beállítás</h3>
+      <div class="config-row">
+        <div style="flex:1">
+          <label>football-data.org API kulcs (ingyenes: football-data.org/client/register)</label>
+          <input type="text" id="fdorg-key" placeholder="pl. abc123def456..." />
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn-sm btn-primary" id="btn-save-apikey">💾 Mentés</button>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn-sm btn-green" id="btn-sync-now">🔄 Szinkron most</button>
+        </div>
+      </div>
+      <p style="font-size:.73rem;color:var(--text3);margin-top:.6rem">
+        Az API kulcs a böngészőben tárolódik. Ha nincs kulcs, az openfootball.github.io fallback-et használja (néhány órás késéssel).
+      </p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-card green"><div class="n" id="stat-finished">0</div><div class="l">Lejátszott</div></div>
+      <div class="stat-card blue"><div class="n" id="stat-upcoming">0</div><div class="l">Közelgő</div></div>
+      <div class="stat-card orange"><div class="n" id="stat-manual">0</div><div class="l">Manuális</div></div>
+      <div class="stat-card red"><div class="n" id="stat-missing">0</div><div class="l">Hiányzó</div></div>
+    </div>
+
+    <!-- PHASE FILTER -->
+    <div class="phase-tabs" id="admin-phase-tabs"></div>
+
+    <!-- RESULTS TABLE -->
+    <div class="results-table" id="results-table">
+      <div style="padding:2rem;text-align:center;color:var(--text2)">⏳ Betöltés...</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyAmX5DCXTg7E9wKe4-GF-nCxgdiZb0UmeE",
+  authDomain: "wfw-fifa-2026-vb.firebaseapp.com",
+  projectId: "wfw-fifa-2026-vb",
+  storageBucket: "wfw-fifa-2026-vb.firebasestorage.app",
+  messagingSenderId: "891074790910",
+  appId: "1:891074790910:web:709ad030abbfc902e16caf"
+};
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+  window.db = db;
+  window.fsUtils = { collection, doc, setDoc, getDoc, getDocs, deleteDoc };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<script src="js/matches.js"></script>
+<script src="js/results.js"></script>
+<script>
+// ============================================================
+// ADMIN PANEL LOGIKA
+// ============================================================
+
+// FONTOS: Állítsd be a saját admin jelszavad!
+const ADMIN_PASSWORD = 'wfw2026admin';
+
+let activePhase = 'group';
+let allResults = {};
+let apiKey = '';
+
+window.addEventListener('firebase-ready', () => {
+  setupLogin();
+  apiKey = localStorage.getItem('wfw_fdorg_key') || '';
+  document.getElementById('fdorg-key').value = apiKey;
+});
+
+// ---- LOGIN ----
+function setupLogin() {
+  const savedSession = sessionStorage.getItem('wfw_admin_session');
+  if (savedSession === 'ok') { showAdmin(); return; }
+
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('admin-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+
+function doLogin() {
+  const pw = document.getElementById('admin-password').value;
+  if (pw === ADMIN_PASSWORD) {
+    sessionStorage.setItem('wfw_admin_session', 'ok');
+    showAdmin();
+  } else {
+    document.getElementById('login-error').classList.remove('hidden');
+    document.getElementById('admin-password').value = '';
+  }
+}
+
+function showAdmin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  initAdmin();
+}
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  sessionStorage.removeItem('wfw_admin_session');
+  location.reload();
+});
+
+// ---- INIT ----
+async function initAdmin() {
+  // Betöltjük a meglévő eredményeket
+  allResults = JSON.parse(localStorage.getItem('wfw_results') || '{}');
+
+  // Firestore-ból is betöltjük
+  try {
+    const { collection, getDocs } = window.fsUtils;
+    const snap = await getDocs(collection(window.db, 'results'));
+    snap.forEach(d => { allResults[d.id] = d.data(); });
+    localStorage.setItem('wfw_results', JSON.stringify(allResults));
+  } catch(e) { console.warn('Firestore load error:', e); }
+
+  setupPhaseTabs();
+  renderTable();
+  updateStats();
+
+  // API kulcs gombok
+  document.getElementById('btn-save-apikey').addEventListener('click', () => {
+    apiKey = document.getElementById('fdorg-key').value.trim();
+    localStorage.setItem('wfw_fdorg_key', apiKey);
+    showToast('✅ API kulcs mentve');
+  });
+
+  document.getElementById('btn-sync-now').addEventListener('click', doSync);
+}
+
+// ---- SYNC ----
+async function doSync() {
+  const statusEl = document.getElementById('sync-status');
+  statusEl.textContent = '🔄 Szinkronizálás...';
+  statusEl.className = 'sync-status loading';
+
+  try {
+    const results = await window.WFWResults.syncResults(apiKey);
+    Object.assign(allResults, results);
+    localStorage.setItem('wfw_results', JSON.stringify(allResults));
+    renderTable();
+    updateStats();
+    const count = Object.keys(results).length;
+    statusEl.textContent = '✅ ' + count + ' eredmény (' + new Date().toLocaleTimeString('hu-HU') + ')';
+    statusEl.className = 'sync-status ok';
+    showToast('🔄 Szinkron kész: ' + count + ' eredmény');
+  } catch(e) {
+    statusEl.textContent = '❌ Hiba: ' + e.message;
+    statusEl.className = 'sync-status error';
+    showToast('❌ Szinkron hiba!');
+  }
+}
+
+// ---- PHASE TABS ----
+function setupPhaseTabs() {
+  const tabs = document.getElementById('admin-phase-tabs');
+  WC_PHASES.forEach(ph => {
+    const btn = document.createElement('button');
+    btn.className = 'phase-tab' + (ph.id === activePhase ? ' active' : '');
+    btn.textContent = ph.label;
+    btn.onclick = () => {
+      activePhase = ph.id;
+      document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderTable();
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+// ---- TABLE ----
+function renderTable() {
+  const table = document.getElementById('results-table');
+  const matches = WC_MATCHES.filter(m => m.phase === activePhase);
+
+  let html = '<div class="result-row header">' +
+    '<span>Dátum</span><span style="text-align:right">Hazai</span><span>Eredmény</span><span>Vendég</span><span style="text-align:center">Forrás / Művelet</span><span></span>' +
+    '</div>';
+
+  matches.forEach(m => {
+    const res = allResults[m.id];
+    const hasResult = res !== undefined;
+    const isManual = res?.source === 'manual';
+    const isLocked = isMatchLocked(m);
+
+    const homeVal = hasResult ? res.home : '';
+    const awayVal = hasResult ? res.away : '';
+    const autoClass = hasResult ? (isManual ? 'manual-filled' : 'auto-filled') : '';
+
+    const sourceBadge = hasResult
+      ? (isManual ? '<span class="source-badge source-manual">✋ Manuális</span>' : '<span class="source-badge source-auto">🤖 Auto</span>')
+      : '<span class="source-badge source-none">– Nincs</span>';
+
+    html +=
+      '<div class="result-row' + (hasResult ? ' has-result' : '') + (isManual ? ' manual' : '') + '" data-id="' + m.id + '">' +
+      '<div class="match-date">' + m.date.substring(5) + '<br>' + m.time + '</div>' +
+      '<div class="team-name team-home">' + m.home + '</div>' +
+      '<div class="score-inputs">' +
+        '<input type="number" class="score-input ' + autoClass + '" id="h-' + m.id + '" value="' + homeVal + '" min="0" max="20" placeholder="–" />' +
+        '<span class="score-dash">–</span>' +
+        '<input type="number" class="score-input ' + autoClass + '" id="a-' + m.id + '" value="' + awayVal + '" min="0" max="20" placeholder="–" />' +
+      '</div>' +
+      '<div class="team-name team-away">' + m.away + '</div>' +
+      '<div style="text-align:center">' + sourceBadge + '</div>' +
+      '<div><button class="btn-save-result' + (hasResult && !isManual ? ' saved' : '') + '" onclick="saveResult(\'' + m.id + '\')">' +
+        (hasResult && !isManual ? '✓ Mentve' : '💾 Mentés') + '</button></div>' +
+      '</div>';
+  });
+
+  table.innerHTML = html;
+}
+
+// ---- SAVE RESULT ----
+async function saveResult(matchId) {
+  const homeEl = document.getElementById('h-' + matchId);
+  const awayEl = document.getElementById('a-' + matchId);
+  const home = parseInt(homeEl?.value);
+  const away = parseInt(awayEl?.value);
+
+  if (isNaN(home) || isNaN(away) || home < 0 || away < 0) {
+    showToast('⚠️ Adj meg érvényes eredményt!'); return;
+  }
+
+  const result = { home, away, source: 'manual', updatedAt: Date.now() };
+  allResults[matchId] = result;
+  localStorage.setItem('wfw_results', JSON.stringify(allResults));
+
+  try {
+    const { doc, setDoc } = window.fsUtils;
+    await setDoc(doc(window.db, 'results', matchId), result);
+    showToast('✅ Elmentve: ' + home + ' – ' + away);
+  } catch(e) {
+    showToast('⚠️ Helyi mentés OK, Firebase hiba: ' + e.message);
+  }
+
+  // Vizuális visszajelzés
+  homeEl.classList.add('manual-filled');
+  awayEl.classList.add('manual-filled');
+  const btn = homeEl.closest('.result-row').querySelector('.btn-save-result');
+  if (btn) { btn.textContent = '✓ Mentve'; btn.classList.add('saved'); }
+
+  updateStats();
+}
+
+// ---- STATS ----
+function updateStats() {
+  const allMatches = WC_MATCHES;
+  const now = new Date();
+
+  let finished = 0, upcoming = 0, manual = 0, missing = 0;
+  allMatches.forEach(m => {
+    const isLocked = isMatchLocked(m);
+    const res = allResults[m.id];
+    if (isLocked) {
+      finished++;
+      if (!res) missing++;
+      else if (res.source === 'manual') manual++;
+    } else {
+      upcoming++;
+    }
+  });
+
+  document.getElementById('stat-finished').textContent = finished;
+  document.getElementById('stat-upcoming').textContent = upcoming;
+  document.getElementById('stat-manual').textContent = manual;
+  document.getElementById('stat-missing').textContent = missing;
+}
+
+function isMatchLocked(match) {
+  const mt = new Date(match.date + 'T' + match.time + ':00Z');
+  return new Date() >= mt;
+}
+
+// ---- TOAST ----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.remove('hidden'); t.classList.add('show');
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.classList.add('hidden'), 300); }, 3000);
+}
+
+window.saveResult = saveResult;
+</script>
+</body>
+</html>
