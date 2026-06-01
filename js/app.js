@@ -14,6 +14,12 @@ let deferredInstallPrompt = null;
 
 window.addEventListener('firebase-ready', () => { initApp(); });
 
+// Amikor új eredmény érkezik, frissíti a meccslistát és tabellát
+window.addEventListener('results-updated', () => {
+  if (activeView === 'matches') renderMatches();
+  if (activeView === 'ranking' && currentLeague) loadRanking(currentLeague, document.getElementById('ranking-content'));
+});
+
 function initApp() {
   loadUser();
   setupNav();
@@ -21,6 +27,17 @@ function initApp() {
   setupCountdown();
   renderMatches();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.warn);
+
+  // Auto-szinkron indítása (football-data.org + openfootball fallback)
+  const savedApiKey = localStorage.getItem('wfw_fdorg_key') || '';
+  const trySync = () => {
+    if (window.WFWResults) {
+      window.WFWResults.startAutoSync(savedApiKey);
+    } else {
+      setTimeout(trySync, 200);
+    }
+  };
+  trySync();
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault(); deferredInstallPrompt = e;
     document.getElementById('btn-install').classList.remove('hidden');
