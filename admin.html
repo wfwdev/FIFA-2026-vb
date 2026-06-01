@@ -176,7 +176,6 @@
 
 <!-- Adatok és szinkron – FIREBASE ELŐTT kell betölteni -->
 <script src="js/matches.js"></script>
-<script src="js/results.js"></script>
 
 <!-- Firebase -->
 <script type="module">
@@ -275,20 +274,106 @@ async function initAdmin() {
   document.getElementById('btn-sync-now').addEventListener('click', doSync);
 }
 
+// ============================================================
+// INLINE SYNC LOGIKA (nem függ results.js-től)
+// ============================================================
+const FDORG_BASE = 'https://api.football-data.org/v4';
+const OPENFOOTBALL_URL = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+
+const TEAM_ALIASES = {
+  'mexico':'Mexikó','south africa':'Dél-Afrika','poland':'Lengyelország','saudi arabia':'Szaúd-Arábia',
+  'argentina':'Argentína','albania':'Albánia','nigeria':'Nigéria','ukraine':'Ukrajna',
+  'united states':'USA','usa':'USA','canada':'Kanada','uruguay':'Uruguaj','panama':'Panama',
+  'brazil':'Brazília','morocco':'Marokkó','croatia':'Horvátország','japan':'Japán',
+  'germany':'Németország','scotland':'Skócia','netherlands':'Hollandia','spain':'Spanyolország',
+  'serbia':'Szerbia','ecuador':'Ecuador','france':'Franciaország','senegal':'Szenegál',
+  'denmark':'Dánia','vietnam':'Vietnám','portugal':'Portugália','colombia':'Kolumbia',
+  'greece':'Görögország','england':'Anglia','south korea':'Dél-Korea','australia':'Australia',
+  'austria':'Ausztria','chile':'Chile','belgium':'Belgium','switzerland':'Svájc',
+  'cameroon':'Kamerun','italy':'Olaszország','turkey':'Törökország','dr congo':'Kongó DR',
+  'cape verde':'Zöld-foki-sz.','zimbabwe':'Zimbabve','chad':'Csád'
+};
+
+function normalizeTeam(name) {
+  const lower = name.toLowerCase().replace(/[^\w\s]/g,'').trim();
+  return TEAM_ALIASES[lower] || name;
+}
+
+function findMatchId(homeName, awayName, date) {
+  const hn = normalizeTeam(homeName), an = normalizeTeam(awayName);
+  for (const m of (window.WC_MATCHES||[])) {
+    const mh = m.home.replace(/\s*[\u{1F1E0}-\u{1F1FF}]{1,4}\s*/gu,'').trim();
+    const ma = m.away.replace(/\s*[\u{1F1E0}-\u{1F1FF}]{1,4}\s*/gu,'').trim();
+    const hOk = mh.toLowerCase().includes(hn.toLowerCase())||hn.toLowerCase().includes(mh.toLowerCase());
+    const aOk = ma.toLowerCase().includes(an.toLowerCase())||an.toLowerCase().includes(ma.toLowerCase());
+    if (hOk && aOk && (!date||m.date===date)) return m.id;
+    if (hOk && aOk && !date) return m.id;
+  }
+  return null;
+}
+
+async function fetchFDOrg(key) {
+  const res = await fetch(FDORG_BASE+'/competitions/WC/matches?status=FINISHED',{headers:{'X-Auth-Token':key}});
+  if (!res.ok) throw new Error('FD.org HTTP '+res.status);
+  const data = await res.json();
+  const results = {};
+  (data.matches||[]).forEach(m => {
+    const sc = m.score?.fullTime;
+    if (!sc||sc.home===null) return;
+    const id = findMatchId(m.homeTeam?.name||'', m.awayTeam?.name||'', m.utcDate?.substring(0,10));
+    if (id) results[id] = {home:sc.home, away:sc.away, source:'fdorg', updatedAt:Date.now()};
+  });
+  return results;
+}
+
+async function fetchOpenFootball() {
+  const res = await fetch(OPENFOOTBALL_URL);
+  if (!res.ok) throw new Error('openfootball HTTP '+res.status);
+  const data = await res.json();
+  const results = {};
+  (data.matches||[]).forEach(m => {
+    if (!m.score) return;
+    const home = Array.isArray(m.score) ? m.score[0] : m.score?.ft?.[0];
+    const away = Array.isArray(m.score) ? m.score[1] : m.score?.ft?.[1];
+    if (home===undefined||away===undefined) return;
+    const id = findMatchId(m.team1||'', m.team2||'', m.date);
+    if (id) results[id] = {home:parseInt(home), away:parseInt(away), source:'openfootball', updatedAt:Date.now()};
+  });
+  return results;
+}
+
+async function fetchFirestoreResults() {
+  if (!window.db||!window.fsUtils) return {};
+  const {collection, getDocs} = window.fsUtils;
+  const snap = await getDocs(collection(window.db,'results'));
+  const results = {};
+  snap.forEach(d => { const r=d.data(); if(r.home!==undefined) results[d.id]=r; });
+  return results;
+}
+
+async function runSync(key) {
+  const results = {};
+  if (key) {
+    try { Object.assign(results, await fetchFDOrg(key)); } catch(e) { console.warn('FDorg:',e.message); }
+  }
+  if (!Object.keys(results).length) {
+    try { Object.assign(results, await fetchOpenFootball()); } catch(e) { console.warn('OpenFB:',e.message); }
+  }
+  try {
+    const manual = await fetchFirestoreResults();
+    Object.assign(results, manual);
+  } catch(e) { console.warn('Firestore:',e.message); }
+  return results;
+}
+
 // ---- SYNC ----
 async function doSync() {
   const statusEl = document.getElementById('sync-status');
   statusEl.textContent = '🔄 Szinkronizálás...';
   statusEl.className = 'sync-status loading';
 
-  if (!window.WFWResults) {
-    statusEl.textContent = '❌ results.js nem töltődött be';
-    statusEl.className = 'sync-status error';
-    return;
-  }
-
   try {
-    const results = await window.WFWResults.syncResults(apiKey);
+    const results = await runSync(apiKey);
     Object.assign(allResults, results);
     localStorage.setItem('wfw_results', JSON.stringify(allResults));
     renderTable();
